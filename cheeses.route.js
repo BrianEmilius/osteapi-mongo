@@ -22,29 +22,24 @@ module.exports = function(app) {
 
 	// get all cheeses
 	app.get("/api/v1/cheeses", async function(request, response, next) {
+		var limit = parseInt(request.query.limit) || 5;
+		var offset = parseInt(request.query.offset) || 0;
+
 		try {
-			var result = await Cheese.find();
+			var result = await Cheese.find().limit(limit).skip(offset);
+			var count = (await Cheese.find()).length;
+
+			var baseUrl = `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }`;
 
 			var output = {
-				count: result.length,
-				next: `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }?offset=20`,
+				count,
+				next: `${baseUrl}?limit=10&offset=20`,
 				previous: null,
-				url: `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }`,
+				url: `${baseUrl}`,
 				results: result
 			}
 
-			response.json(output); // <---- rediger her
-
-			/*
-			{
-				count: 342723478,
-				next: "url",
-				previous: "url",
-				url: "url",
-				results: []
-			}
-			*/
-
+			response.json(output);
 		} catch (error) {
 			return next(error);
 		}
