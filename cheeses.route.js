@@ -29,13 +29,32 @@ module.exports = function(app) {
 			var result = await Cheese.find().limit(limit).skip(offset);
 			var count = (await Cheese.find()).length;
 
-			var baseUrl = `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }`;
+			// ["limit=5", "offset=2"].join("&")
+
+			var qLimit = request.query.limit;
+			var qOffset = request.query.offset || 0;
+
+			var queryStringNext = [];
+			var queryStringPrevious = [];
+
+			if (qLimit) {
+				queryStringNext.push("limit=" + qLimit);
+				queryStringPrevious.push("limit=" + qLimit);
+			}
+
+			queryStringNext.push("offset=" + (parseInt(qOffset) + limit));
+
+			if (qOffset) {
+				queryStringPrevious.push("offset=" + (parseInt(qOffset) - limit));
+			}
+
+			var baseUrl = `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request._parsedUrl.pathname }`;
 
 			var output = {
 				count,
-				next: `${baseUrl}?limit=10&offset=20`,
-				previous: null,
-				url: `${baseUrl}`,
+				next: (offset + limit < count) ? `${baseUrl}?${queryStringNext.join("&")}` : null,
+				previous: offset > 0 ? `${baseUrl}?${queryStringPrevious.join("&")}` : null,
+				url: `${baseUrl}?` + (offset ? "offset=" + offset : ""),
 				results: result
 			}
 
