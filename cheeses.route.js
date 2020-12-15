@@ -24,7 +24,27 @@ module.exports = function(app) {
 	app.get("/api/v1/cheeses", async function(request, response, next) {
 		try {
 			var result = await Cheese.find();
-			response.json(result);
+
+			var output = {
+				count: result.length,
+				next: `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }?offset=20`,
+				previous: null,
+				url: `${request.protocol}://${request.hostname}${ request.hostname == "localhost" ? ":" + process.env.PORT : "" }${ request.url }`,
+				results: result
+			}
+
+			response.json(output); // <---- rediger her
+
+			/*
+			{
+				count: 342723478,
+				next: "url",
+				previous: "url",
+				url: "url",
+				results: []
+			}
+			*/
+
 		} catch (error) {
 			return next(error);
 		}
