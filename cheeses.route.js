@@ -1,8 +1,9 @@
 var Cheese = require("./cheese.model");
+var auth = require("./auth-middleware");
 
 module.exports = function(app) {
 	// create a cheese
-	app.post("/api/v1/cheeses", function(request, response, next) {
+	app.post("/api/v1/cheeses", auth, function(request, response, next) {
 		try {
 			var cheese = new Cheese({
 				name: request.fields.name,
@@ -28,8 +29,6 @@ module.exports = function(app) {
 		try {
 			var result = await Cheese.find().limit(limit).skip(offset);
 			var count = (await Cheese.find()).length;
-
-			// ["limit=5", "offset=2"].join("&")
 
 			var qLimit = request.query.limit;
 			var qOffset = request.query.offset || 0;
@@ -87,7 +86,7 @@ module.exports = function(app) {
 	});
 
 	// update a cheese
-	app.patch("/api/v1/cheeses/:id", async function(request, response, next) {
+	app.patch("/api/v1/cheeses/:id", auth, async function(request, response, next) {
 		try {
 			var { name, price, weight, strength, brand } = request.fields;
 			var updateObject = {};
@@ -110,7 +109,7 @@ module.exports = function(app) {
 	});
 
 	// delete a single cheese by id
-	app.delete("/api/v1/cheeses/:id", async function(request, response, next) {
+	app.delete("/api/v1/cheeses/:id", auth, async function(request, response, next) {
 		try {
 			await Cheese.findByIdAndRemove(request.params.id);
 			response.status(204);
